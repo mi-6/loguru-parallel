@@ -1,9 +1,8 @@
 from loguru import logger
 from joblib import Parallel, delayed
 from loguru_parallel.listener import start_log_listener
-from loguru_parallel.log_queue import enqueue_logger
 from loguru_parallel.worker import worker_func
-from loguru_parallel.utils import inherit_logger
+from loguru_parallel.propagate import propagate_logger
 import sys
 
 
@@ -13,8 +12,6 @@ def _configure_sink_logger() -> None:
 
 
 def test_main():
-    enqueue_logger()
-
     logger.info("Starting")
 
     def _test_patcher(record):
@@ -27,7 +24,7 @@ def test_main():
     # funcs = [delayed(enq_logs(worker_func))(x) for x in range(10)]
     # funcs = [delayed(worker_func_w_logger)(x, logger) for x in range(10)]
     # funcs = [delayed(pass_logger(worker_func, logger))(x) for x in range(10)]
-    funcs = [delayed(inherit_logger(worker_func))(x) for x in range(10)]
+    funcs = [delayed(propagate_logger(worker_func))(x) for x in range(10)]
     # funcs = [delayed(pass_logger(worker_func))(x, logger=logger) for x in range(10)]
     # funcs = [delayed(nonlocal_kwargs(worker_func, logger=logger))(x) for x in range(10)]
     Parallel(n_jobs=4)(funcs)

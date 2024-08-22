@@ -3,7 +3,7 @@ from joblib import Parallel, delayed
 from loguru_parallel.listener import start_log_listener
 
 from loguru_parallel.worker import worker_func
-from loguru_parallel.utils import inherit_logger
+from loguru_parallel.propagate import propagate_logger
 import sys
 
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     logger.configure(patcher=_test_patcher)
 
-    funcs = [delayed(inherit_logger(worker_func))(x) for x in range(10)]
+    funcs = [delayed(propagate_logger(worker_func))(x) for x in range(10)]
     Parallel(n_jobs=4)(funcs)
 
     logger.info("Finished")

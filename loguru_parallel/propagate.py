@@ -1,12 +1,17 @@
-from loguru import logger as parent_logger
+from loguru import logger
+from loguru_parallel.log_queue import logger_is_enqueued
 import functools
 
 
-def inherit_logger(func):
+def propagate_logger(func):
+    if not logger_is_enqueued():
+        logger.debug("Logger not enqueued. Skipping propagation.")
+        return func
+
     def wrapped_func(*args, **kwargs):
         from loguru import logger as child_logger
 
-        child_logger._core = parent_logger._core
+        child_logger._core = logger._core
         return func(*args, **kwargs)
 
     try:
