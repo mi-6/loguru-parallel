@@ -1,5 +1,3 @@
-
-
 # def test_inherit_logger():
 #     # Define a dummy function for testing
 #     @inherit_logger

@@ -9,22 +9,23 @@ def worker_func(queue, x):
     x = queue.get()
 
 
-@pytest.mark.parametrize("backend", ["loky", "threading"])
+@pytest.mark.parametrize(
+    "backend", ["loky", "threading"]
+)  # NOTE pickling fails for multiprocessing backend
 def test_joblib_backends(backend):
     _queue = get_global_log_queue()
     funcs = [delayed(worker_func)(_queue, x) for x in range(4)]
-    # NOTE pickling fails for multiprocessing backend
     Parallel(n_jobs=4, backend=backend)(funcs)
 
 
 def test_mp_process():
-    _queue = get_global_log_queue()
-    p = mp.Process(target=worker_func, args=(_queue, 1))
+    queue = get_global_log_queue()
+    p = mp.Process(target=worker_func, args=(queue, 1))
     p.start()
     p.join()
 
 
 def test_mp_pool():
-    _queue = get_global_log_queue()
+    queue = get_global_log_queue()
     with mp.Pool(4) as pool:
-        pool.starmap(worker_func, [(_queue, x) for x in range(4)])
+        pool.starmap(worker_func, [(queue, x) for x in range(4)])

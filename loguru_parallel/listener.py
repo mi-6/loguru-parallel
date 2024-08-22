@@ -2,7 +2,7 @@ from logging.handlers import QueueListener
 from loguru import logger
 from multiprocessing import Process
 from typing import Callable
-from loguru_parallel.log_queue import get_global_log_queue
+from loguru_parallel.log_queue import get_global_log_queue, enqueue_logger
 import atexit
 
 
@@ -37,6 +37,8 @@ class _LoguruQueueListener(QueueListener):
         Note that if you don't call this before your application exits, there
         may be some records still left on the queue, which won't be processed.
         """
+        if self._process is None:
+            return
         self.enqueue_sentinel()
         self._process.join()
         self._process = None
@@ -44,11 +46,14 @@ class _LoguruQueueListener(QueueListener):
     def _monitor(self) -> None:
         self._configure_logger()
         super()._monitor()
+        logger.complete()
         print("Listener stopped")
 
 
-def start_log_listener(configure_logger: Callable[[], None]) -> None:
+def start_log_listener(configure_logger: Callable[[], None]) -> _LoguruQueueListener:
     queue = get_global_log_queue()
     listener = _LoguruQueueListener(queue, configure_logger)
     listener.start()
     atexit.register(listener.stop)
+    enqueue_logger()
+    return listener

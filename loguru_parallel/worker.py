@@ -1,7 +1,6 @@
 from loguru import logger
 
 
-
 def _sub_func():
     logger.info("Hi from subfunc")
 
