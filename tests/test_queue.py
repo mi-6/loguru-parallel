@@ -1,7 +1,13 @@
-from loguru_parallel.log_queue import get_global_log_queue
+from loguru_parallel.log_queue import (
+    get_global_log_queue,
+    logger_is_enqueued,
+    enqueue_logger,
+)
 from joblib import Parallel, delayed
 import pytest
 import multiprocessing as mp
+import importlib
+import loguru
 
 
 def worker_func(queue, x):
@@ -29,3 +35,18 @@ def test_mp_pool():
     queue = get_global_log_queue()
     with mp.Pool(4) as pool:
         pool.starmap(worker_func, [(queue, x) for x in range(4)])
+
+
+def test_is_enqueued_true():
+    importlib.reload(loguru)
+    from loguru import logger
+
+    enqueue_logger(logger)
+    assert logger_is_enqueued(logger)
+
+
+def test_is_enqueued_false():
+    importlib.reload(loguru)
+    from loguru import logger
+
+    assert not logger_is_enqueued(logger)

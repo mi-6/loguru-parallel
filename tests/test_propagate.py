@@ -30,7 +30,7 @@ def worker_func(x):
 
 @pytest.mark.parametrize("backend", ["loky", "threading"])
 def test_propagate_logger_joblib(backend):
-    enqueue_logger()
+    enqueue_logger(logger)
     _queue = get_global_log_queue()
     n = 3
     funcs = [delayed(propagate_logger(worker_func))(x) for x in range(n)]

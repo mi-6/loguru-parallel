@@ -4,7 +4,7 @@ import functools
 
 
 def propagate_logger(func):
-    if not logger_is_enqueued():
+    if not logger_is_enqueued(logger):
         logger.debug("Logger not enqueued. Skipping propagation.")
         return func
 

@@ -1,6 +1,5 @@
 from multiprocessing import Manager
 from queue import Queue
-from loguru import logger
 
 _queue = None
 
@@ -21,16 +20,19 @@ def get_global_log_queue() -> Queue:
 #         self._queue.put(record)
 
 
-def enqueue_logger() -> None:
+def enqueue_logger(logger) -> None:
     _queue = get_global_log_queue()
     logger.remove()
-    logger.add(lambda record: _queue.put(record))
-    logger._enqueued = True
+    handler_id = logger.add(lambda record: _queue.put(record))
+    logger._core.handlers[handler_id]._enqueued = True
 
 
-def logger_is_enqueued() -> bool:
+def logger_is_enqueued(logger) -> bool:
     handlers = logger._core.handlers
-    if len(handlers) == 0 or len(handlers) > 1:
+    if not handlers:
         return False
 
-    return getattr(logger, "_enqueued", False)
+    for handler in handlers.values():
+        if not getattr(handler, "_enqueued", False):
+            return False
+    return True

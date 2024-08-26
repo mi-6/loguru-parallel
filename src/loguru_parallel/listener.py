@@ -55,5 +55,5 @@ def start_log_listener(configure_logger: Callable[[], None]) -> _LoguruQueueList
     listener = _LoguruQueueListener(queue, configure_logger)
     listener.start()
     atexit.register(listener.stop)
-    enqueue_logger()
+    enqueue_logger(logger)
     return listener
