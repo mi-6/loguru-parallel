@@ -3,6 +3,6 @@ import sys
 from loguru import logger
 
 
-def _configure_sink_logger() -> None:
+def config_stdout_sink() -> None:
     logger.remove()
     logger.add(sys.stdout)

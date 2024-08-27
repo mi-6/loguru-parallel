@@ -1,3 +1,4 @@
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -118,3 +119,26 @@ def test_stop():
     assert logger_is_enqueued(logger)
     listener.stop()
     assert listener._process is None
+
+
+def _config_serialized_sink_logger() -> None:
+    from loguru import logger
+
+    logger.remove()
+    logger.add(sys.stderr, serialize=True)
+
+
+def test_serialized_sink(capfd):
+    listener = loguru_enqueue_and_listen(_config_serialized_sink_logger)
+    assert logger_is_enqueued(logger)
+    logger.info("Hello, world")
+    logger.debug("Hello, debug")
+    listener.stop()
+    captured = capfd.readouterr()
+
+    records = [json.loads(line) for line in captured.err.splitlines()]
+    assert len(records) == 2
+    assert "Hello, world" in records[0]["record"]["message"]
+    assert "Hello, world" in records[0]["text"]
+    assert "Hello, debug" in records[1]["record"]["message"]
+    assert "Hello, debug" in records[1]["text"]
