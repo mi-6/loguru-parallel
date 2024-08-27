@@ -1,9 +1,12 @@
-from loguru_parallel.listener import start_log_listener
-from loguru_parallel.log_queue import get_global_log_queue
-from loguru import logger
 import sys
 import tempfile
 from pathlib import Path
+
+import pytest
+from loguru import logger
+
+from loguru_parallel.listener import loguru_enqueue_and_listen
+from loguru_parallel.log_queue import logger_is_enqueued
 
 
 def _configure_no_sink() -> None:
@@ -13,13 +16,13 @@ def _configure_no_sink() -> None:
 
 
 def test_no_sink(capfd):
-    queue = get_global_log_queue()
-    start_log_listener(_configure_no_sink)
+    listener = loguru_enqueue_and_listen(_configure_no_sink)
+    assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     captured = capfd.readouterr()
     assert "Hello, world" not in captured.out
     assert "Hello, world" not in captured.err
-    queue.put(None)
+    listener.stop()
 
 
 def _configure_stdout_sink() -> None:
@@ -30,7 +33,8 @@ def _configure_stdout_sink() -> None:
 
 
 def test_stdout_sink(capfd):
-    listener = start_log_listener(_configure_stdout_sink)
+    listener = loguru_enqueue_and_listen(_configure_stdout_sink)
+    assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     listener.stop()
     captured = capfd.readouterr()
@@ -45,7 +49,8 @@ def _configure_stderr_sink() -> None:
 
 
 def test_stderr_sink(capfd):
-    listener = start_log_listener(_configure_stderr_sink)
+    listener = loguru_enqueue_and_listen(_configure_stderr_sink)
+    assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     listener.stop()
     captured = capfd.readouterr()
@@ -58,6 +63,20 @@ _tmp_log_file_two_sinks = (
 )
 
 
+@pytest.fixture()
+def tmp_log_file():
+    _tmp_log_file.touch()
+    yield _tmp_log_file
+    _tmp_log_file.unlink()
+
+
+@pytest.fixture()
+def tmp_log_file_two_sinks():
+    _tmp_log_file_two_sinks.touch()
+    yield _tmp_log_file_two_sinks
+    _tmp_log_file_two_sinks.unlink()
+
+
 def _configure_file_sink() -> None:
     from loguru import logger
 
@@ -65,13 +84,13 @@ def _configure_file_sink() -> None:
     logger.add(str(_tmp_log_file))
 
 
-def test_file_sink():
-    listener = start_log_listener(_configure_file_sink)
+def test_file_sink(tmp_log_file):
+    listener = loguru_enqueue_and_listen(_configure_file_sink)
+    assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     listener.stop()
-    contents = _tmp_log_file.read_text()
+    contents = tmp_log_file.read_text()
     assert "Hello, world" in contents
-    _tmp_log_file.unlink()
 
 
 def _configure_two_sinks() -> None:
@@ -82,19 +101,20 @@ def _configure_two_sinks() -> None:
     logger.add(str(_tmp_log_file_two_sinks))
 
 
-def test_two_sinks(capfd):
-    listener = start_log_listener(_configure_two_sinks)
+def test_two_sinks(capfd, tmp_log_file_two_sinks):
+    listener = loguru_enqueue_and_listen(_configure_two_sinks)
+    assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     listener.stop()
     captured = capfd.readouterr()
     assert "Hello, world" in captured.out
     assert "Hello, world" not in captured.err
-    contents = _tmp_log_file_two_sinks.read_text()
+    contents = tmp_log_file_two_sinks.read_text()
     assert "Hello, world" in contents
-    _tmp_log_file_two_sinks.unlink()
 
 
 def test_stop():
-    listener = start_log_listener(_configure_no_sink)
+    listener = loguru_enqueue_and_listen(_configure_no_sink)
+    assert logger_is_enqueued(logger)
     listener.stop()
     assert listener._process is None

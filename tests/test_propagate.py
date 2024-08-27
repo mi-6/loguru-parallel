@@ -1,27 +1,11 @@
-# from loguru import logger as parent_logger
-# import functools
-
-
-# def propagate_logger(func):
-#     def wrapped_func(*args, **kwargs):
-#         from loguru import logger as child_logger
-
-#         child_logger._core = parent_logger._core
-#         return func(*args, **kwargs)
-
-#     try:
-#         wrapped_func = functools.wraps(func)(wrapped_func)
-#     except AttributeError:
-#         " functools.wraps fails on some callable objects "
-#     return wrapped_func
-
-
-from loguru_parallel.propagate import propagate_logger
-from loguru_parallel.log_queue import enqueue_logger, get_global_log_queue
-from loguru import logger
-from joblib import delayed, Parallel
 import queue
+
 import pytest
+from joblib import Parallel, delayed
+from loguru import logger
+
+from loguru_parallel.log_queue import enqueue_logger, get_global_log_queue
+from loguru_parallel.propagate import propagate_logger
 
 
 def worker_func(x):
@@ -46,3 +30,8 @@ def test_propagate_logger_joblib(backend):
 
     print("logs", logs)
     assert all(f"Hello {x}" in logs for x in range(n))
+
+
+def propagated_worker_func():
+    enqueue_logger(logger)
+    return propagate_logger(worker_func)

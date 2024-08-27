@@ -1,13 +1,15 @@
+import importlib
+import multiprocessing as mp
+
+import loguru
+import pytest
+from joblib import Parallel, delayed
+
 from loguru_parallel.log_queue import (
+    enqueue_logger,
     get_global_log_queue,
     logger_is_enqueued,
-    enqueue_logger,
 )
-from joblib import Parallel, delayed
-import pytest
-import multiprocessing as mp
-import importlib
-import loguru
 
 
 def worker_func(queue, x):

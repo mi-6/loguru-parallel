@@ -1,9 +1,17 @@
-from loguru import logger
-from loguru_parallel.log_queue import logger_is_enqueued
 import functools
+
+from loguru import logger
+
+from loguru_parallel.log_queue import logger_is_enqueued
 
 
 def propagate_logger(func):
+    """Wrapper for multiprocesssing target functions to propagate the parent logger.
+
+    Propagation is achieved by setting the child process logger's core to the parent logger's core.
+    Usecase: when a logger is enqueued, the child process logger should also be enqueued. Propagation
+    is skipped if the parent logger is not enqueued.
+    """
     if not logger_is_enqueued(logger):
         logger.debug("Logger not enqueued. Skipping propagation.")
         return func

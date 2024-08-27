@@ -12,15 +12,12 @@ def get_global_log_queue() -> Queue:
     return _queue
 
 
-# class QueueSink:
-#     def __init__(self):
-#         self._queue = get_global_log_queue()
-
-#     def __call__(self, record):
-#         self._queue.put(record)
-
-
 def enqueue_logger(logger) -> None:
+    """Configure the current process's logger to enqueue records.
+
+    This means that all handlers will be removed and replaced with a single handler that
+    enqueues records to the global log queue.
+    """
     _queue = get_global_log_queue()
     logger.remove()
     handler_id = logger.add(lambda record: _queue.put(record))

@@ -1,5 +1,6 @@
-from loguru import logger
 import sys
+
+from loguru import logger
 
 
 def _configure_sink_logger() -> None:

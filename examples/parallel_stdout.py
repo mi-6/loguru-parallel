@@ -1,10 +1,11 @@
-from loguru import logger
-from joblib import Parallel, delayed
-from loguru_parallel.listener import start_log_listener
-
-from loguru_parallel.worker import worker_func
-from loguru_parallel.propagate import propagate_logger
 import sys
+
+from joblib import Parallel, delayed
+from loguru import logger
+
+from loguru_parallel.listener import loguru_enqueue_and_listen
+from loguru_parallel.propagate import propagate_logger
+from loguru_parallel.worker import worker_func
 
 
 def _configure_sink_logger() -> None:
@@ -13,7 +14,7 @@ def _configure_sink_logger() -> None:
 
 
 if __name__ == "__main__":
-    start_log_listener(_configure_sink_logger)
+    loguru_enqueue_and_listen(_configure_sink_logger)
 
     logger.info("Starting")
 
