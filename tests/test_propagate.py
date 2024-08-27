@@ -4,8 +4,8 @@ import pytest
 from joblib import Parallel, delayed
 from loguru import logger
 
+from loguru_parallel import propagate_logger
 from loguru_parallel.log_queue import enqueue_logger, get_global_log_queue
-from loguru_parallel.propagate import propagate_logger
 
 
 def worker_func(x):

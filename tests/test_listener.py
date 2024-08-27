@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from loguru import logger
 
-from loguru_parallel.listener import loguru_enqueue_and_listen
+from loguru_parallel import loguru_enqueue_and_listen
 from loguru_parallel.log_queue import logger_is_enqueued
 
 
