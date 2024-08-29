@@ -33,7 +33,7 @@ def test_mp_process():
 
 def test_mp_pool():
     queue = get_global_log_queue()
-    with mp.Pool(4) as pool:
+    with mp.Pool(2) as pool:
         pool.starmap(worker_func, [(queue, x) for x in range(4)])
 
 

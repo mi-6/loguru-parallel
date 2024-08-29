@@ -32,5 +32,5 @@ def propagate_logger(func, parent_logger):
 
 
 def delayed_with_logger(func, parent_logger):
-    """Wrapper for joblib.delayed to propagate the parent logger to the child process."""
+    """Extension of joblib's `delayed` wrapper, to propagate the logger to the child process."""
     return delayed(propagate_logger(func, parent_logger))

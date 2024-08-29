@@ -4,7 +4,7 @@ from loguru_parallel.propagate import delayed_with_logger, propagate_logger
 
 __all__ = [
     "loguru_enqueue_and_listen",
-    "propagate_logger",
-    "delayed_with_logger",
     "enqueue_logger",
+    "delayed_with_logger",
+    "propagate_logger",
 ]
