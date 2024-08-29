@@ -17,9 +17,7 @@ def worker_func(queue, x):
     x = queue.get()
 
 
-@pytest.mark.parametrize(
-    "backend", ["loky", "threading"]
-)  # NOTE pickling fails for multiprocessing backend
+@pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing"])
 def test_joblib_backends(backend):
     _queue = get_global_log_queue()
     funcs = [delayed(worker_func)(_queue, x) for x in range(4)]

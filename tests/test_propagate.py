@@ -12,12 +12,12 @@ def worker_func(x):
     logger.info(f"Hello {x}")
 
 
-@pytest.mark.parametrize("backend", ["loky", "threading"])
+@pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing"])
 def test_propagate_logger_joblib(backend):
     enqueue_logger(logger)
     _queue = get_global_log_queue()
     n = 3
-    funcs = [delayed(propagate_logger(worker_func))(x) for x in range(n)]
+    funcs = [delayed(propagate_logger(worker_func, logger))(x) for x in range(n)]
     Parallel(n_jobs=2, backend=backend)(funcs)
 
     logs = ""
@@ -34,4 +34,4 @@ def test_propagate_logger_joblib(backend):
 
 def propagated_worker_func():
     enqueue_logger(logger)
-    return propagate_logger(worker_func)
+    return propagate_logger(worker_func, logger)

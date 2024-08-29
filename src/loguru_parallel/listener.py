@@ -3,6 +3,7 @@ from logging.handlers import QueueListener
 from multiprocessing import Process
 from typing import Callable
 
+from joblib import wrap_non_picklable_objects
 from loguru import logger
 
 from loguru_parallel.log_queue import enqueue_logger, get_global_log_queue
@@ -12,7 +13,7 @@ class _LoguruQueueListener(QueueListener):
     def __init__(self, queue, configure_logger: Callable[[], None]):
         self.queue = queue
         self._process = None
-        self._configure_logger = configure_logger
+        self._configure_logger = wrap_non_picklable_objects(configure_logger)
 
     def handle(self, record):
         """Logs a record from the queue."""
