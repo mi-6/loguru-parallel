@@ -73,4 +73,4 @@ def test_propagate_logger_not_enqueued(backend):
     Parallel(n_jobs=2, backend=backend)(funcs)
 
     logs = _read_queued_logs()
-    assert len(logs) == 0
+    assert len(logs) == 0  # test
