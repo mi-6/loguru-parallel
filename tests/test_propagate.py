@@ -64,7 +64,7 @@ def test_propagate_mp_process():
 
 @pytest.mark.parametrize(
     "backend", ["threading", "multiprocessing"]
-)  # "loky" when run together with other tests
+)  # "loky" fails when run together with other tests
 def test_propagate_logger_not_enqueued(backend):
     logger.remove()
     logger.add(sys.stderr)
