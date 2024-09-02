@@ -1,6 +1,8 @@
+import sys
+
 from joblib import Parallel
 from loguru import logger
-from sinks import config_stdout_sink
+from worker_func import worker_func
 
 from loguru_parallel import (
     delayed_with_logger,
@@ -8,17 +10,19 @@ from loguru_parallel import (
 )
 
 
-def worker_func(x):
-    logger.info(f"Hello {x}")
+def config_sink() -> None:
+    logger.remove()
+    # logger.add(sys.stderr, serialize=False)
+    logger.add(sys.stderr, serialize=True)
 
 
 if __name__ == "__main__":
-    loguru_enqueue_and_listen(config_stdout_sink)
+    loguru_enqueue_and_listen(config_sink)
 
     logger.info("Starting")
 
     def _test_patcher(record):
-        record["message"] = record["message"] + " (from patcher)"
+        record["message"] = record["message"] + " (with patcher)"
 
     logger.configure(patcher=_test_patcher)
 
