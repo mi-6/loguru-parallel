@@ -1,13 +1,13 @@
 [project]
 name = "loguru-parallel"
 version = "0.1.0"
-description = "Add your description here"
+description = "Loguru for parallel processing with joblib or multiprocessing"
 readme = "README.md"
 requires-python = ">=3.10"
 
 dependencies = [
-    "loguru>=0.7.2",
-    "joblib>=1.4.2",
+    "loguru>=0.6",
+    "joblib>=1",
 ]
 
 [build-system]
