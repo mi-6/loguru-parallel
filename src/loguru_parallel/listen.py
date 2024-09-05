@@ -19,7 +19,6 @@ class _LoguruQueueListener(QueueListener):
         """Logs a record from the queue."""
         record = record.record
         level, message = record["level"].name, record["message"]
-        record["message"] = message + " (from LoguruQueueListener)"
         logger.patch(lambda r: r.update(record)).log(level, message)
 
     def start(self) -> None:

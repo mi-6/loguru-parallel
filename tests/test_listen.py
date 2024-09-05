@@ -142,3 +142,39 @@ def test_serialized_sink(capfd):
     assert "Hello, world" in records[0]["text"]
     assert "Hello, debug" in records[1]["record"]["message"]
     assert "Hello, debug" in records[1]["text"]
+
+
+def test_extra_data(capfd):
+    logger.configure(extra={"extra_key": "extra_value"})
+    listener = loguru_enqueue_and_listen(_config_serialized_sink_logger)
+    assert logger_is_enqueued(logger)
+    # logger.info("Hello, world", extra={"extra_key": "extra_value"})
+    logger.info("Hello, world")
+    logger.info("Hello, world", extra_key2="extra_value2")
+    listener.stop()
+    captured = capfd.readouterr()
+    records = [json.loads(line) for line in captured.err.splitlines()]
+    assert len(records) == 2
+    assert "Hello, world" in records[0]["record"]["message"]
+    assert records[0]["record"]["extra"]["extra_key"] == "extra_value"
+    assert records[0]["record"]["function"] == "test_extra_data"
+    assert "Hello, world" in records[1]["record"]["message"]
+    assert records[1]["record"]["extra"]["extra_key2"] == "extra_value2"
+    assert records[1]["record"]["function"] == "test_extra_data"
+
+
+@pytest.fixture()
+def logger_patcher():
+    logger.configure(patcher=lambda record: record.update(message="patched"))
+    yield
+    logger.configure(patcher=lambda record: record)
+
+
+def test_patcher(capfd, logger_patcher):
+    listener = loguru_enqueue_and_listen(_config_serialized_sink_logger)
+    logger.info("Hello, world")
+    listener.stop()
+    captured = capfd.readouterr()
+    records = [json.loads(line) for line in captured.err.splitlines()]
+    assert len(records) == 1
+    assert records[0]["record"]["message"] == "patched"

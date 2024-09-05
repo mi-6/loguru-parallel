@@ -24,6 +24,8 @@ def enqueue_logger(logger) -> None:
         logger: The loguru logger instance to enqueue
     """
     _queue = get_global_log_queue()
+    if not logger._core.handlers:
+        logger.add(lambda dummy: dummy)
     handlers = logger._core.handlers
     for handler in handlers.values():
         state = handler.__getstate__()
