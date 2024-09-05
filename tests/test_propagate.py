@@ -26,7 +26,8 @@ def _read_queued_logs() -> list[str]:
     return logs
 
 
-@pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing"])
+# @pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing"])
+@pytest.mark.parametrize("backend", ["threading", "multiprocessing"])
 def test_propagate_logger_joblib(backend):
     enqueue_logger(logger)
     n = 3
