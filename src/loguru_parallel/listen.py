@@ -1,18 +1,19 @@
 import atexit
 from logging.handlers import QueueListener
 from multiprocessing import Process
+from queue import Queue
 from typing import Callable
 
 from loguru import logger
 
-from loguru_parallel.log_queue import enqueue_logger, get_global_log_queue
+from loguru_parallel.enqueue import enqueue_logger, get_global_log_queue
 
 
 class _LoguruQueueListener(QueueListener):
-    def __init__(self, queue, configure_logger: Callable[[], None]):
+    def __init__(self, queue: Queue, configure_sink: Callable[[], None]):
         self.queue = queue
         self._process = None
-        self._configure_logger = configure_logger
+        self._configure_sink = configure_sink
 
     def handle(self, record):
         """Logs a record from the queue."""
@@ -45,18 +46,18 @@ class _LoguruQueueListener(QueueListener):
 
     def _monitor(self) -> None:
         """Monitor the queue for records, and ask the handler to deal with them."""
-        self._configure_logger()
+        self._configure_sink()
         super()._monitor()
         logger.complete()
         print("Loguru Listener stopped.")
 
 
 def loguru_enqueue_and_listen(
-    config_sink_logger: Callable[[], None],
+    configure_sink: Callable[[], None],
 ) -> _LoguruQueueListener:
     queue = get_global_log_queue()
     enqueue_logger(logger)
-    listener = _LoguruQueueListener(queue, config_sink_logger)
+    listener = _LoguruQueueListener(queue, configure_sink)
     listener.start()
     atexit.register(listener.stop)
     return listener

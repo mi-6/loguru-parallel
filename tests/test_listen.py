@@ -7,7 +7,7 @@ import pytest
 from loguru import logger
 
 from loguru_parallel import loguru_enqueue_and_listen
-from loguru_parallel.log_queue import logger_is_enqueued
+from loguru_parallel.enqueue import logger_is_enqueued
 
 
 def _configure_no_sink() -> None:

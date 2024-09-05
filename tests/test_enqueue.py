@@ -5,7 +5,7 @@ import loguru
 import pytest
 from joblib import Parallel, delayed
 
-from loguru_parallel.log_queue import (
+from loguru_parallel.enqueue import (
     enqueue_logger,
     get_global_log_queue,
     logger_is_enqueued,

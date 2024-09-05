@@ -19,10 +19,13 @@ def enqueue_logger(logger) -> None:
 
     This means that all handlers will be removed and replaced with a single handler that
     enqueues records to the global log queue.
+
+    Args:
+        logger: The loguru logger instance to enqueue
     """
     _queue = get_global_log_queue()
     handlers = logger._core.handlers
-    for id, handler in handlers.items():
+    for handler in handlers.values():
         state = handler.__getstate__()
         sink = CallableSink(lambda record: _queue.put(record))
         sink._enqueued = True
@@ -32,6 +35,14 @@ def enqueue_logger(logger) -> None:
 
 
 def logger_is_enqueued(logger) -> bool:
+    """Check whether all handlers of the logger are enqueued.
+
+    Args:
+        logger: The loguru logger instance to check.
+
+    Returns:
+        True if all handlers are enqueued, False otherwise.
+    """
     handlers = logger._core.handlers
     if not handlers:
         return False

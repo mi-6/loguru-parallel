@@ -1,5 +1,5 @@
-from loguru_parallel.listener import loguru_enqueue_and_listen
-from loguru_parallel.log_queue import enqueue_logger
+from loguru_parallel.enqueue import enqueue_logger
+from loguru_parallel.listen import loguru_enqueue_and_listen
 from loguru_parallel.propagate import delayed_with_logger, propagate_logger
 
 __all__ = [

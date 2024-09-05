@@ -2,7 +2,7 @@ import functools
 
 from joblib import delayed, wrap_non_picklable_objects
 
-from loguru_parallel.log_queue import logger_is_enqueued
+from loguru_parallel.enqueue import logger_is_enqueued
 
 
 def propagate_logger(func, parent_logger):
