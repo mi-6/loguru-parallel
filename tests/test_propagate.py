@@ -64,29 +64,10 @@ def test_propagate_mp_process():
 
 @pytest.mark.parametrize("backend", ["threading", "multiprocessing"])
 def test_propagate_logger_not_enqueued(backend):
-    logger.remove()
     logger.add(sys.stderr)
     n = 3
     funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(n)]
     Parallel(n_jobs=2, backend=backend)(funcs)
 
     logs = _read_queued_logs()
-    assert len(logs) == 0
-
-
-# @pytest.mark.parametrize("backend", ["threading", "multiprocessing", "loky"])
-# def test_propagate_serialized_logger(backend, capfd):
-#     from tempfile import NamedTemporaryFile
-#     tmp_file = NamedTemporaryFile()
-#     tmp_file_path = tmp_file.name
-#     logger.configure(handlers=[{"sink": tmp_file_path, "serialize": True}])
-#     with capfd.disabled():
-#         logger.remove()
-#         logger.add(str(tmp_file_path), serialize=True)
-#         n = 3
-#         funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(n)]
-#         Parallel(n_jobs=2, backend=backend)(funcs)
-
-#     logs = tmp_file.read().decode().splitlines()
-#     # captured = caplog.text
-#     # print(captured)
+    assert any("Skipping propagation" in log for log in logs)

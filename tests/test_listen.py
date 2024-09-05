@@ -125,7 +125,7 @@ def _config_serialized_sink_logger() -> None:
     from loguru import logger
 
     logger.remove()
-    logger.add(sys.stderr, serialize=True)
+    logger.add(sys.stderr, serialize=True, level="TRACE")
 
 
 def test_serialized_sink(capfd):
@@ -178,3 +178,18 @@ def test_patcher(capfd, logger_patcher):
     records = [json.loads(line) for line in captured.err.splitlines()]
     assert len(records) == 1
     assert records[0]["record"]["message"] == "patched"
+
+
+def test_log_levels(capfd):
+    listener = loguru_enqueue_and_listen(_config_serialized_sink_logger)
+    levels = ["DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+    for level in levels:
+        log_method = getattr(logger, level.lower())
+        log_method(level)
+    listener.stop()
+    captured = capfd.readouterr()
+    records = [json.loads(line) for line in captured.err.splitlines()]
+    assert len(records) == 6
+    for record, level in zip(records, levels):
+        assert record["record"]["level"]["name"] == level
+        assert record["record"]["message"] == level
