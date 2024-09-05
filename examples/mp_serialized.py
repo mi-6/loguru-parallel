@@ -1,12 +1,12 @@
+import multiprocessing as mp
 import sys
 
-from joblib import Parallel
 from loguru import logger
 from worker_func import worker_func
 
 from loguru_parallel import (
-    delayed_with_logger,
     loguru_enqueue_and_listen,
+    propagate_logger,
 )
 
 
@@ -23,9 +23,9 @@ if __name__ == "__main__":
     def _test_patcher(record):
         record["message"] = record["message"] + " (with patcher)"
 
-    logger.configure(patcher=_test_patcher)
+    logger.configure(patcher=_test_patcher, extra={"test": "extra"})
 
-    funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(10)]
-    Parallel(n_jobs=4)(funcs)
+    with mp.Pool(4) as pool:
+        pool.map(propagate_logger(worker_func, logger), range(3))
 
     logger.info("Finished")

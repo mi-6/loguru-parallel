@@ -5,10 +5,12 @@
 ```py
 from loguru_parallel import loguru_enqueue_and_listen
 
-
 def config_sink() -> None:
     logger.remove()
     logger.add(sys.stderr, serialize=True)
+
+def worker_func(x):
+    logger.info(f"Hello {x}")
 
 if __name__ == "__main__":
     # Configure loguru to log to a queue and start a listener that writes
@@ -33,6 +35,6 @@ uv sync
 uv run pytest
 
 # Run example script
-uv run examples/joblib_stdout.py
+uv run examples/joblib_.py
 ```
 
