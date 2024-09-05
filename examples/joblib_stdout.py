@@ -12,7 +12,6 @@ from loguru_parallel import (
 
 def config_sink() -> None:
     logger.remove()
-    # logger.add(sys.stderr, serialize=False)
     logger.add(sys.stderr, serialize=True)
 
 
