@@ -148,7 +148,6 @@ def test_extra_data(capfd):
     logger.configure(extra={"extra_key": "extra_value"})
     listener = loguru_enqueue_and_listen(logger, _config_serialized_sink_logger)
     assert logger_is_enqueued(logger)
-    # logger.info("Hello, world", extra={"extra_key": "extra_value"})
     logger.info("Hello, world")
     logger.info("Hello, world", extra_key2="extra_value2")
     listener.stop()
