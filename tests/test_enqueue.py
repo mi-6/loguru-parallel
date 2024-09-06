@@ -16,7 +16,9 @@ def worker_func(queue, x):
     x = queue.get()
 
 
-@pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing", "sequential"])
+@pytest.mark.parametrize(
+    "backend", ["loky", "threading", "multiprocessing", "sequential"]
+)
 def test_joblib_backends(backend):
     _queue = create_log_queue()
     funcs = [delayed(worker_func)(_queue, x) for x in range(4)]

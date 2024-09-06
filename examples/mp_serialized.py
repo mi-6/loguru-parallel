@@ -16,7 +16,7 @@ def config_sink() -> None:
 
 
 if __name__ == "__main__":
-    loguru_enqueue_and_listen(logger, config_sink)
+    loguru_enqueue_and_listen(config_sink)
 
     logger.info("Starting")
 

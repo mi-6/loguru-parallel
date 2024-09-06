@@ -52,7 +52,6 @@ class LoguruQueueListener(QueueListener):
 
 
 def loguru_enqueue_and_listen(
-    logger,
     configure_sink: Callable[[], None],
 ) -> LoguruQueueListener:
     queue = create_log_queue()
