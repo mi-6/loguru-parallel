@@ -1,8 +1,8 @@
-import importlib
 import multiprocessing as mp
 
 import pytest
 from joblib import Parallel, delayed
+from loguru import logger
 
 from loguru_parallel.enqueue import (
     enqueue_logger,
@@ -36,27 +36,17 @@ def test_mp_pool():
         pool.starmap(worker_func, [(queue, x) for x in range(4)])
 
 
-@pytest.fixture
-def logger():
-    import loguru
-
-    importlib.reload(loguru)
-    from loguru import logger
-
-    yield logger
-    del logger
-
-
-def test_is_enqueued_true(logger):
+def test_is_enqueued_true():
     enqueue_logger(logger)
     assert logger_is_enqueued(logger)
 
 
-def test_enqueue_without_sink(logger):
+def test_enqueue_without_sink():
     logger.remove()
     enqueue_logger(logger)
     assert logger_is_enqueued(logger)
 
 
-def test_is_enqueued_false(logger):
+def test_is_enqueued_false():
+    logger.remove()
     assert not logger_is_enqueued(logger)

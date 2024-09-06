@@ -17,7 +17,7 @@ def _configure_no_sink() -> None:
 
 
 def test_no_sink(capfd):
-    listener = loguru_enqueue_and_listen(_configure_no_sink)
+    listener = loguru_enqueue_and_listen(logger, _configure_no_sink)
     assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     captured = capfd.readouterr()
@@ -34,7 +34,7 @@ def _configure_stdout_sink() -> None:
 
 
 def test_stdout_sink(capfd):
-    listener = loguru_enqueue_and_listen(_configure_stdout_sink)
+    listener = loguru_enqueue_and_listen(logger, _configure_stdout_sink)
     assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     listener.stop()
@@ -50,7 +50,7 @@ def _configure_stderr_sink() -> None:
 
 
 def test_stderr_sink(capfd):
-    listener = loguru_enqueue_and_listen(_configure_stderr_sink)
+    listener = loguru_enqueue_and_listen(logger, _configure_stderr_sink)
     assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     listener.stop()
@@ -86,7 +86,7 @@ def _configure_file_sink() -> None:
 
 
 def test_file_sink(tmp_log_file):
-    listener = loguru_enqueue_and_listen(_configure_file_sink)
+    listener = loguru_enqueue_and_listen(logger, _configure_file_sink)
     assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     listener.stop()
@@ -103,7 +103,7 @@ def _configure_two_sinks() -> None:
 
 
 def test_two_sinks(capfd, tmp_log_file_two_sinks):
-    listener = loguru_enqueue_and_listen(_configure_two_sinks)
+    listener = loguru_enqueue_and_listen(logger, _configure_two_sinks)
     assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     listener.stop()
@@ -115,7 +115,7 @@ def test_two_sinks(capfd, tmp_log_file_two_sinks):
 
 
 def test_stop():
-    listener = loguru_enqueue_and_listen(_configure_no_sink)
+    listener = loguru_enqueue_and_listen(logger, _configure_no_sink)
     assert logger_is_enqueued(logger)
     listener.stop()
     assert listener._process is None
@@ -125,11 +125,11 @@ def _config_serialized_sink_logger() -> None:
     from loguru import logger
 
     logger.remove()
-    logger.add(sys.stderr, serialize=True)
+    logger.add(sys.stderr, serialize=True, level="TRACE")
 
 
 def test_serialized_sink(capfd):
-    listener = loguru_enqueue_and_listen(_config_serialized_sink_logger)
+    listener = loguru_enqueue_and_listen(logger, _config_serialized_sink_logger)
     assert logger_is_enqueued(logger)
     logger.info("Hello, world")
     logger.debug("Hello, debug")
@@ -146,9 +146,8 @@ def test_serialized_sink(capfd):
 
 def test_extra_data(capfd):
     logger.configure(extra={"extra_key": "extra_value"})
-    listener = loguru_enqueue_and_listen(_config_serialized_sink_logger)
+    listener = loguru_enqueue_and_listen(logger, _config_serialized_sink_logger)
     assert logger_is_enqueued(logger)
-    # logger.info("Hello, world", extra={"extra_key": "extra_value"})
     logger.info("Hello, world")
     logger.info("Hello, world", extra_key2="extra_value2")
     listener.stop()
@@ -171,10 +170,25 @@ def logger_patcher():
 
 
 def test_patcher(capfd, logger_patcher):
-    listener = loguru_enqueue_and_listen(_config_serialized_sink_logger)
+    listener = loguru_enqueue_and_listen(logger, _config_serialized_sink_logger)
     logger.info("Hello, world")
     listener.stop()
     captured = capfd.readouterr()
     records = [json.loads(line) for line in captured.err.splitlines()]
     assert len(records) == 1
     assert records[0]["record"]["message"] == "patched"
+
+
+def test_log_levels(capfd):
+    listener = loguru_enqueue_and_listen(logger, _config_serialized_sink_logger)
+    levels = ["DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+    for level in levels:
+        log_method = getattr(logger, level.lower())
+        log_method(level)
+    listener.stop()
+    captured = capfd.readouterr()
+    records = [json.loads(line) for line in captured.err.splitlines()]
+    assert len(records) == 6
+    for record, level in zip(records, levels):
+        assert record["record"]["level"]["name"] == level
+        assert record["record"]["message"] == level

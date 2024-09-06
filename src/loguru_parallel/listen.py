@@ -52,6 +52,7 @@ class _LoguruQueueListener(QueueListener):
 
 
 def loguru_enqueue_and_listen(
+    logger,
     configure_sink: Callable[[], None],
 ) -> _LoguruQueueListener:
     queue = get_global_log_queue()
