@@ -7,6 +7,7 @@ from worker_func import worker_func
 from loguru_parallel import (
     delayed_with_logger,
     loguru_enqueue_and_listen,
+    create_log_queue,
 )
 
 
@@ -16,7 +17,8 @@ def config_sink() -> None:
 
 
 if __name__ == "__main__":
-    loguru_enqueue_and_listen(config_sink)
+    queue = create_log_queue()
+    loguru_enqueue_and_listen(config_sink, queue)
 
     logger.info("Starting")
 

@@ -13,8 +13,12 @@ def get_global_log_queue() -> Queue:
         _queue = m.Queue()
     return _queue
 
+def create_log_queue() -> Queue:
+    m = Manager()
+    return m.Queue()
 
-def enqueue_logger(logger) -> None:
+
+def enqueue_logger(logger, queue: Queue) -> None:
     """Configure the current process's logger to enqueue records.
 
     This means that all handlers will be removed and replaced with a single handler that
@@ -23,7 +27,8 @@ def enqueue_logger(logger) -> None:
     Args:
         logger: The loguru logger instance to enqueue
     """
-    _queue = get_global_log_queue()
+    # _queue = get_global_log_queue()
+    _queue = queue
     if not logger._core.handlers:
         logger.add(lambda dummy: dummy)
     handlers = logger._core.handlers

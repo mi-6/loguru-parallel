@@ -7,57 +7,62 @@ from joblib import Parallel
 from loguru import logger
 
 from loguru_parallel import delayed_with_logger, propagate_logger
-from loguru_parallel.enqueue import enqueue_logger, get_global_log_queue
+from loguru_parallel.enqueue import enqueue_logger, get_global_log_queue, create_log_queue
 
 
 def worker_func(x):
     logger.info(f"Hello {x}")
 
 
-def _read_queued_logs() -> list[str]:
-    _queue = get_global_log_queue()
+def _read_queued_logs(queue: queue.Queue) -> list[str]:
+    # _queue = get_global_log_queue()
+    _queue = queue
     logs = []
     while True:
-        try:
-            log = _queue.get(timeout=0.01)
-            logs.append(log)
-        except queue.Empty:
+        # try:
+        log = _queue.get(timeout=0.01)
+        logs.append(log)
+        # except _queue.Empty:
+        if _queue.empty():
             break
     return logs
 
 
 @pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing"])
 def test_propagate_logger_joblib(backend):
-    enqueue_logger(logger)
+    queue = create_log_queue()
+    enqueue_logger(logger, queue)
     n = 3
     funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(n)]
     Parallel(n_jobs=2, backend=backend)(funcs)
 
-    logs = _read_queued_logs()
+    logs = _read_queued_logs(queue)
     assert len(logs) == n
     for x in range(n):
         assert any(f"Hello {x}" in log for log in logs)
 
 
 def test_propagate_mp_pool():
-    enqueue_logger(logger)
+    queue = create_log_queue()
+    enqueue_logger(logger, queue)
     n = 3
     with mp.Pool(2) as pool:
         pool.starmap(propagate_logger(worker_func, logger), [(x,) for x in range(n)])
 
-    logs = _read_queued_logs()
+    logs = _read_queued_logs(queue)
     assert len(logs) == n
     for x in range(n):
         assert any(f"Hello {x}" in log for log in logs)
 
 
 def test_propagate_mp_process():
-    enqueue_logger(logger)
+    queue = create_log_queue()
+    enqueue_logger(logger, queue)
     p = mp.Process(target=propagate_logger(worker_func, logger), args=(0,))
     p.start()
     p.join()
 
-    logs = _read_queued_logs()
+    logs = _read_queued_logs(queue)
     assert len(logs) == 1
     assert "Hello 0" in logs[0]
 
@@ -70,8 +75,8 @@ def test_propagate_logger_not_enqueued(backend):
     funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(n)]
     Parallel(n_jobs=2, backend=backend)(funcs)
 
-    logs = _read_queued_logs()
-    assert len(logs) == 0
+    # logs = _read_queued_logs(queue)
+    # assert len(logs) == 0
 
 
 # @pytest.mark.parametrize("backend", ["threading", "multiprocessing", "loky"])

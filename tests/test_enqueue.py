@@ -7,6 +7,7 @@ from joblib import Parallel, delayed
 from loguru_parallel.enqueue import (
     enqueue_logger,
     get_global_log_queue,
+    create_log_queue,
     logger_is_enqueued,
 )
 
@@ -48,13 +49,15 @@ def logger():
 
 
 def test_is_enqueued_true(logger):
-    enqueue_logger(logger)
+    queue = create_log_queue()
+    enqueue_logger(logger, queue)
     assert logger_is_enqueued(logger)
 
 
 def test_enqueue_without_sink(logger):
     logger.remove()
-    enqueue_logger(logger)
+    queue = create_log_queue()
+    enqueue_logger(logger, queue)
     assert logger_is_enqueued(logger)
 
 

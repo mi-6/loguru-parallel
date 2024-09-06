@@ -52,10 +52,10 @@ class _LoguruQueueListener(QueueListener):
 
 
 def loguru_enqueue_and_listen(
-    configure_sink: Callable[[], None],
+    configure_sink: Callable[[], None], queue
 ) -> _LoguruQueueListener:
-    queue = get_global_log_queue()
-    enqueue_logger(logger)
+    # queue = get_global_log_queue()
+    enqueue_logger(logger, queue)
     listener = _LoguruQueueListener(queue, configure_sink)
     listener.start()
     atexit.register(listener.stop)
