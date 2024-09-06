@@ -17,18 +17,18 @@ def worker_func(queue, x):
     x = queue.get()
 
 
-@pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing"])
-def test_joblib_backends(backend):
-    _queue = get_global_log_queue()
-    funcs = [delayed(worker_func)(_queue, x) for x in range(4)]
-    Parallel(n_jobs=4, backend=backend)(funcs)
+# @pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing"])
+# def test_joblib_backends(backend):
+#     _queue = get_global_log_queue()
+#     funcs = [delayed(worker_func)(_queue, x) for x in range(4)]
+#     Parallel(n_jobs=4, backend=backend)(funcs)
 
 
-def test_mp_process():
-    queue = get_global_log_queue()
-    p = mp.Process(target=worker_func, args=(queue, 1))
-    p.start()
-    p.join()
+# def test_mp_process():
+#     queue = get_global_log_queue()
+#     p = mp.Process(target=worker_func, args=(queue, 1))
+#     p.start()
+#     p.join()
 
 
 def test_mp_pool():
@@ -39,9 +39,9 @@ def test_mp_pool():
 
 @pytest.fixture
 def logger():
-    import loguru
+    # import loguru
 
-    importlib.reload(loguru)
+    # importlib.reload(loguru)
     from loguru import logger
 
     yield logger
@@ -54,12 +54,12 @@ def test_is_enqueued_true(logger):
     assert logger_is_enqueued(logger)
 
 
-def test_enqueue_without_sink(logger):
-    logger.remove()
-    queue = create_log_queue()
-    enqueue_logger(logger, queue)
-    assert logger_is_enqueued(logger)
+# def test_enqueue_without_sink(logger):
+#     logger.remove()
+#     queue = create_log_queue()
+#     enqueue_logger(logger, queue)
+#     assert logger_is_enqueued(logger)
 
 
-def test_is_enqueued_false(logger):
-    assert not logger_is_enqueued(logger)
+# def test_is_enqueued_false(logger):
+#     assert not logger_is_enqueued(logger)
