@@ -3,18 +3,17 @@ from queue import Queue
 
 from loguru._simple_sinks import CallableSink
 
-_queue = None
+_manager = None
 
 
-def get_global_log_queue() -> Queue:
-    global _queue
-    if _queue is None:
-        m = Manager()
-        _queue = m.Queue()
-    return _queue
+def create_log_queue() -> Queue:
+    global _manager
+    if not _manager:
+        _manager = Manager()
+    return _manager.Queue()
 
 
-def enqueue_logger(logger) -> None:
+def enqueue_logger(logger, queue: Queue) -> None:
     """Configure the current process's logger to enqueue records.
 
     This means that all handlers will be removed and replaced with a single handler that
@@ -23,7 +22,7 @@ def enqueue_logger(logger) -> None:
     Args:
         logger: The loguru logger instance to enqueue
     """
-    _queue = get_global_log_queue()
+    _queue = queue
     if not logger._core.handlers:
         logger.add(lambda dummy: dummy)
     handlers = logger._core.handlers

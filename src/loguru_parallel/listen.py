@@ -6,10 +6,10 @@ from typing import Callable
 
 from loguru import logger
 
-from loguru_parallel.enqueue import enqueue_logger, get_global_log_queue
+from loguru_parallel.enqueue import create_log_queue, enqueue_logger
 
 
-class _LoguruQueueListener(QueueListener):
+class LoguruQueueListener(QueueListener):
     def __init__(self, queue: Queue, configure_sink: Callable[[], None]):
         self.queue = queue
         self._process = None
@@ -54,10 +54,10 @@ class _LoguruQueueListener(QueueListener):
 def loguru_enqueue_and_listen(
     logger,
     configure_sink: Callable[[], None],
-) -> _LoguruQueueListener:
-    queue = get_global_log_queue()
-    enqueue_logger(logger)
-    listener = _LoguruQueueListener(queue, configure_sink)
+) -> LoguruQueueListener:
+    queue = create_log_queue()
+    enqueue_logger(logger, queue)
+    listener = LoguruQueueListener(queue, configure_sink)
     listener.start()
     atexit.register(listener.stop)
     return listener
