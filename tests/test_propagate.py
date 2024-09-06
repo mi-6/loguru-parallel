@@ -25,7 +25,7 @@ def _read_queued_logs(_queue: queue.Queue) -> list[str]:
     return logs
 
 
-@pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing"])
+@pytest.mark.parametrize("backend", ["loky", "threading", "multiprocessing", "sequential"])
 def test_propagate_logger_joblib(backend):
     _queue = create_log_queue()
     enqueue_logger(logger, _queue)
@@ -64,7 +64,7 @@ def test_propagate_mp_process():
     assert "Hello 0" in logs[0]
 
 
-@pytest.mark.parametrize("backend", ["threading", "multiprocessing", "loky"])
+@pytest.mark.parametrize("backend", ["threading", "multiprocessing", "loky", "sequential"])
 def test_propagate_logger_not_enqueued(backend, capfd):
     logger.remove()
     logger.add(sys.stderr)
