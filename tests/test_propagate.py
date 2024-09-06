@@ -30,7 +30,7 @@ def _read_queued_logs(_queue: queue.Queue) -> list[str]:
 )
 def test_propagate_logger_joblib(backend):
     _queue = create_log_queue()
-    enqueue_logger(logger, _queue)
+    enqueue_logger(_queue)
     n = 3
     funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(n)]
     Parallel(n_jobs=2, backend=backend)(funcs)
@@ -43,7 +43,7 @@ def test_propagate_logger_joblib(backend):
 
 def test_propagate_mp_pool():
     _queue = create_log_queue()
-    enqueue_logger(logger, _queue)
+    enqueue_logger(_queue)
     n = 3
     with mp.Pool(2) as pool:
         pool.starmap(propagate_logger(worker_func, logger), [(x,) for x in range(n)])
@@ -56,7 +56,7 @@ def test_propagate_mp_pool():
 
 def test_propagate_mp_process():
     _queue = create_log_queue()
-    enqueue_logger(logger, _queue)
+    enqueue_logger(_queue)
     p = mp.Process(target=propagate_logger(worker_func, logger), args=(0,))
     p.start()
     p.join()

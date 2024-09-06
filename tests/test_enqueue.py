@@ -40,14 +40,14 @@ def test_mp_pool():
 
 def test_is_enqueued_true():
     queue = create_log_queue()
-    enqueue_logger(logger, queue)
+    enqueue_logger(queue)
     assert logger_is_enqueued(logger)
 
 
 def test_enqueue_without_sink():
     logger.remove()
     queue = create_log_queue()
-    enqueue_logger(logger, queue)
+    enqueue_logger(queue)
     assert logger_is_enqueued(logger)
 
 

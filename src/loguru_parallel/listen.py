@@ -55,7 +55,7 @@ def loguru_enqueue_and_listen(
     configure_sink: Callable[[], None],
 ) -> LoguruQueueListener:
     queue = create_log_queue()
-    enqueue_logger(logger, queue)
+    enqueue_logger(queue)
     listener = LoguruQueueListener(queue, configure_sink)
     listener.start()
     atexit.register(listener.stop)

@@ -1,6 +1,7 @@
 from multiprocessing import Manager
 from queue import Queue
 
+from loguru import logger
 from loguru._simple_sinks import CallableSink
 
 _manager = None
@@ -13,14 +14,11 @@ def create_log_queue() -> Queue:
     return _manager.Queue()
 
 
-def enqueue_logger(logger, queue: Queue) -> None:
+def enqueue_logger(queue: Queue) -> None:
     """Configure the current process's logger to enqueue records.
 
     This means that all handlers will be removed and replaced with a single handler that
     enqueues records to the global log queue.
-
-    Args:
-        logger: The loguru logger instance to enqueue
     """
     _queue = queue
     if not logger._core.handlers:
