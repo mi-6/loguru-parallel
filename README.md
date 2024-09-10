@@ -1,21 +1,20 @@
 # loguru-parallel
+Makes loguru usable with parallel processing using `multiprocessing` or `joblib`.
+
+Caution: This package most likely does not support all of loguru's features and depends on some private APIs that may break in future version.
 
 ## Usage
 
 ```py
 from loguru_parallel import loguru_enqueue_and_listen
 
-def config_sink() -> None:
-    logger.remove()
-    logger.add(sys.stderr, serialize=True)
-
 def worker_func(x):
     logger.info(f"Hello {x}")
 
 if __name__ == "__main__":
     # Configure loguru to log to a queue and start a listener that writes
-    # logs to the sink configured in `config_sink`.
-    loguru_enqueue_and_listen(config_sink)
+    # logs to the sinks configured in the handlers.
+    loguru_enqueue_and_listen(handlers=[dict(sink=sys.stderr)])
 
     # Pass the enqueued logger to a parallelized function.
     funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(10)]

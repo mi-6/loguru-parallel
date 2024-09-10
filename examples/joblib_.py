@@ -9,15 +9,8 @@ from loguru_parallel import (
     loguru_enqueue_and_listen,
 )
 
-
-def config_sink() -> None:
-    logger.remove()
-    logger.add(sys.stderr)
-
-
 if __name__ == "__main__":
-    loguru_enqueue_and_listen(config_sink)
-
+    loguru_enqueue_and_listen(handlers=[dict(sink=sys.stderr)])
     logger.info("Starting")
 
     def _test_patcher(record):
