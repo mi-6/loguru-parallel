@@ -70,6 +70,11 @@ def test_propagate_mp_process():
     "backend", ["threading", "multiprocessing", "loky", "sequential"]
 )
 def test_propagate_logger_not_enqueued(backend, capfd):
+    # Make loky forget previously enqueued loggers cached in the executor singleton
+    import joblib
+
+    joblib.externals.loky.reusable_executor._executor = None
+
     logger.remove()
     logger.add(sys.stderr)
     n = 3
@@ -77,4 +82,5 @@ def test_propagate_logger_not_enqueued(backend, capfd):
     Parallel(n_jobs=2, backend=backend)(funcs)
 
     captured = capfd.readouterr()
-    assert "Skipping propagation" in captured.err
+    for x in range(n):
+        assert f"Hello {x}" in captured.err
