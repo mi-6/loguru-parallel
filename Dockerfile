@@ -7,8 +7,9 @@ RUN apt-get -y update && \
 
 COPY . .
 
-# RUN make uv && \
-    # uv sync
+RUN make uv
 
-RUN pip install joblib loguru pytest
-RUN pip install -e .
+ENV PATH="/root/.cargo/bin/:$PATH"
+ENV PATH="/app/.venv/bin:$PATH"
+
+RUN uv sync --frozen

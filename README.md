@@ -37,3 +37,14 @@ uv run pytest
 uv run examples/joblib_.py
 ```
 
+## Dev Docker container
+
+```sh
+docker build -t loguru-parallel .
+docker run -it -v $(pwd):/app loguru-parallel bash
+
+# in container
+pytest
+python examples/joblib_.py
+```
+
