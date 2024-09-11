@@ -1,4 +1,5 @@
 import functools
+import warnings
 
 from joblib import delayed, wrap_non_picklable_objects
 
@@ -14,10 +15,9 @@ def propagate_logger(func, parent_logger):
     """
 
     if not logger_is_enqueued(parent_logger):
-        parent_logger.debug("Logger not enqueued. Skipping propagation.")
+        warnings.warn("Logger not enqueued. Skipping propagation.")
         return func
 
-    @wrap_non_picklable_objects
     def wrapped_func(*args, **kwargs):
         from loguru import logger as child_logger
 
@@ -25,7 +25,9 @@ def propagate_logger(func, parent_logger):
         return func(*args, **kwargs)
 
     try:
-        wrapped_func = functools.wraps(func)(wrapped_func)
+        wrapped_func = functools.wraps(func)(
+            wrap_non_picklable_objects(wrapped_func, keep_wrapper=False)
+        )
     except AttributeError:
         " functools.wraps fails on some callable objects "
     return wrapped_func
