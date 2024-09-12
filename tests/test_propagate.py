@@ -3,10 +3,10 @@ import queue
 import sys
 
 import pytest
-from joblib import Parallel
+from joblib import Parallel, delayed
 from loguru import logger
 
-from loguru_parallel import delayed_with_logger, propagate_logger
+from loguru_parallel import propagate_logger
 from loguru_parallel.enqueue import create_log_queue, enqueue_logger
 
 
@@ -32,7 +32,8 @@ def test_propagate_logger_joblib(backend):
     _queue = create_log_queue()
     enqueue_logger(_queue)
     n = 3
-    funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(n)]
+    _worker_func = propagate_logger(worker_func, logger)
+    funcs = [delayed(_worker_func)(x) for x in range(n)]
     Parallel(n_jobs=2, backend=backend)(funcs)
 
     logs = _read_queued_logs(_queue)
@@ -78,7 +79,8 @@ def test_propagate_logger_not_enqueued(backend, capfd):
     logger.remove()
     logger.add(sys.stderr)
     n = 3
-    funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(n)]
+    _worker_func = propagate_logger(worker_func, logger)
+    funcs = [delayed(_worker_func)(x) for x in range(n)]
     Parallel(n_jobs=2, backend=backend)(funcs)
 
     captured = capfd.readouterr()

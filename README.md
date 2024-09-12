@@ -6,7 +6,8 @@ Caution: This package most likely does not support all of loguru's features and 
 ## Usage
 
 ```py
-from loguru_parallel import loguru_enqueue_and_listen
+from loguru_parallel import loguru_enqueue_and_listen, propagate_logger
+from joblib import Parallel, delayed
 
 def worker_func(x):
     logger.info(f"Hello {x}")
@@ -17,7 +18,8 @@ if __name__ == "__main__":
     loguru_enqueue_and_listen(handlers=[dict(sink=sys.stderr)])
 
     # Pass the enqueued logger to a parallelized function.
-    funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(10)]
+    _worker_func = propagate_logger(worker_func, logger)
+    funcs = [delayed(_worker_func)(x) for x in range(10)]
     Parallel(n_jobs=4)(funcs)
 ```
 

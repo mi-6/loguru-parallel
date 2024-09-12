@@ -1,12 +1,12 @@
 import sys
 
-from joblib import Parallel
+from joblib import Parallel, delayed
 from loguru import logger
 from worker_func import worker_func
 
 from loguru_parallel import (
-    delayed_with_logger,
     loguru_enqueue_and_listen,
+    propagate_logger,
 )
 
 if __name__ == "__main__":
@@ -18,7 +18,8 @@ if __name__ == "__main__":
 
     logger.configure(patcher=_test_patcher)
 
-    funcs = [delayed_with_logger(worker_func, logger)(x) for x in range(3)]
+    worker_func = propagate_logger(worker_func, logger)
+    funcs = [delayed(worker_func)(x) for x in range(3)]
 
     logger.info("Loky")
     Parallel(n_jobs=4, backend="loky")(funcs)
