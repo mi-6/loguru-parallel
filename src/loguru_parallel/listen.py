@@ -11,6 +11,7 @@ from loguru_parallel.enqueue import create_log_queue, enqueue_logger
 
 
 def get_unconfigured_logger_instance():
+    # Temporarily reset _core, to avoid trying to deepcopy non-picklable objects
     current_core = logger._core
     logger._core = Core()
     new_logger = deepcopy(logger)
@@ -51,15 +52,30 @@ class LoguruQueueListener(QueueListener):
         if self._thread is None:
             return
         super().stop()
-
-    def _monitor(self) -> None:
-        """Monitor the queue for records, and ask the handler to deal with them."""
-        super()._monitor()
         self._sink_logger.complete()
         print("Loguru Listener stopped.")
 
 
 def loguru_enqueue_and_listen(handlers: list[dict[str, Any]]) -> LoguruQueueListener:
+    """Enqueue the logger and start a listener thread to process the log records.
+
+    The listener emits log records to via the handlers passed to this function.
+
+    Args:
+        handlers: List of handlers to process log records. The handlers are passed to
+            loguru's `logger.configure` method.
+
+    Returns:
+        The listener instance.
+
+    Example:
+    >>> loguru_enqueue_and_listen(
+    ...     handlers=[
+    ...         dict(sink=sys.stderr, format="[{time}] {message}"),
+    ...         dict(sink="file.log", enqueue=True, serialize=True),
+    ...     ]
+    ... )
+    """
     queue = create_log_queue()
     listener = LoguruQueueListener(handlers, queue)
     enqueue_logger(queue)
