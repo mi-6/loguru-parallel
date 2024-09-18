@@ -16,8 +16,8 @@ def create_log_queue() -> Queue:
 def enqueue_logger(queue: Queue) -> None:
     """Configure the loguru.logger instance to send logs to a queue.
 
-    This means that all handlers are deleted and replaced with a single handler that
-    enqueues records log queue passed to this function.
+    This means that all handlers are removed and replaced with a single handler
+    that enqueues records to the queue.
     """
     logger.remove()
 
@@ -30,13 +30,13 @@ def enqueue_logger(queue: Queue) -> None:
 
 
 def logger_is_enqueued(logger) -> bool:
-    """Check whether all handlers of the logger are enqueued.
+    """Check whether the logger is enqueued.
 
     Args:
         logger: The loguru logger instance to check.
 
     Returns:
-        True if all handlers are enqueued, False otherwise.
+        True if the logger has a single enqueued handler, False otherwise.
     """
     handlers = logger._core.handlers
     if len(handlers) != 1:

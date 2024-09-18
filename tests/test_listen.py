@@ -1,6 +1,7 @@
 import json
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 import pytest
@@ -104,6 +105,28 @@ def test_serialized_sink(capfd):
     assert "Hello, world" in records[0]["text"]
     assert "Hello, debug" in records[1]["record"]["message"]
     assert "Hello, debug" in records[1]["text"]
+
+
+def test_add_handler(capfd):
+    listener = loguru_enqueue_and_listen(handlers=[])
+    logger.info("No handler, so this should not be emitted.")
+    time.sleep(0.1)
+    captured = capfd.readouterr()
+    assert captured.out == "" and captured.err == ""
+    listener.sink_logger.add(sys.stderr)
+    logger.info("Hello, world")
+    time.sleep(0.1)
+    captured = capfd.readouterr()
+    assert "Hello, world" in captured.err
+    listener.sink_logger.remove()
+    listener.sink_logger.add(sys.stdout, serialize=True)
+    logger.info("Hello, world")
+    time.sleep(0.1)
+    captured = capfd.readouterr()
+    record = json.loads(captured.out)
+    assert record["record"]["message"] == "Hello, world"
+    assert captured.err == ""
+    listener.stop()
 
 
 def test_extra_data(capfd):
