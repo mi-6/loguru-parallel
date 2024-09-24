@@ -36,6 +36,11 @@ class LoguruQueueListener(QueueListener):
         atexit.register(sink_logger.remove)
         self._sink_logger = sink_logger
 
+    @property
+    def sink_logger(self):
+        """Public access to the logger instance that logs to the sink."""
+        return self._sink_logger
+
     def handle(self, record):
         """Logs a record from the queue."""
         record = record.record
