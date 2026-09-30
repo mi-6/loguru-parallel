@@ -183,3 +183,20 @@ def test_log_levels(capfd):
     for record, level in zip(records, levels):
         assert record["record"]["level"]["name"] == level
         assert record["record"]["message"] == level
+
+
+def test_exception_of_an_unimportable_class_still_reaches_the_sink():
+    # botocore builds its ClientError subclasses at runtime, so pickle can't
+    # look them up by name.
+    unimportable = type("AccessDenied", (Exception,), {})
+    records = []
+    listener = loguru_enqueue_and_listen(handlers=[dict(sink=records.append)])
+    try:
+        raise unimportable("not authorized")
+    except Exception:
+        logger.exception("Job failed")
+    listener.stop()
+
+    assert [m.record["message"] for m in records] == ["Job failed"]
+    exception = records[0].record["exception"]
+    assert "AccessDenied: not authorized" in str(exception.value)
