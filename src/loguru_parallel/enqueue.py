@@ -27,21 +27,30 @@ def enqueue_logger(queue: Queue) -> None:
     logger.remove()
 
     def queue_sink(message):
-        _make_exception_picklable(message.record)
-        queue.put(message)
+        try:
+            queue.put(message)
+        except Exception:
+            # Only a queue that pickles (a Manager queue) fails here; a
+            # thread queue carries any exception unchanged.
+            if not _replace_unpicklable_exception(message.record):
+                raise
+            queue.put(message)
 
     logger.add(queue_sink)
     handler = list(logger._core.handlers.values())[0]
     handler._loguru_parallel_enqueued = True
 
 
-def _make_exception_picklable(record) -> None:
-    # Loguru drops an unpicklable exception value when pickling a record, but
-    # still pickles its class, which fails for classes created at runtime
-    # (botocore's ClientError subclasses): the whole record is then lost.
+def _replace_unpicklable_exception(record) -> bool:
+    """Swap an exception whose class pickle can't find for UnpicklableException.
+
+    Loguru drops an unpicklable exception value when pickling a record, but
+    still pickles its class, which fails for classes created at runtime
+    (botocore's ClientError subclasses). Returns whether anything was replaced.
+    """
     exception = record["exception"]
     if exception is None:
-        return
+        return False
     try:
         pickle.dumps(exception.type)
     except Exception:
@@ -50,6 +59,8 @@ def _make_exception_picklable(record) -> None:
             type=UnpicklableException,
             value=UnpicklableException(f"{name}: {exception.value}"),
         )
+        return True
+    return False
 
 
 def logger_is_enqueued(logger) -> bool:

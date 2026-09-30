@@ -1,4 +1,5 @@
 import multiprocessing as mp
+from queue import Queue
 
 import pytest
 from joblib import Parallel, delayed
@@ -54,3 +55,16 @@ def test_enqueue_without_sink():
 def test_is_enqueued_false():
     logger.remove()
     assert not logger_is_enqueued(logger)
+
+
+def test_a_thread_queue_keeps_an_unimportable_exception_class():
+    unimportable = type("AccessDenied", (Exception,), {})
+    queue = Queue()
+    enqueue_logger(queue)
+    try:
+        raise unimportable("not authorized")
+    except Exception:
+        logger.exception("Job failed")
+    logger.remove()
+
+    assert queue.get_nowait().record["exception"].type is unimportable
