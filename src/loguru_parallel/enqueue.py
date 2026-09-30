@@ -1,9 +1,14 @@
+import pickle
 from multiprocessing import Manager
 from queue import Queue
 
 from loguru import logger
 
 _manager = None
+
+
+class UnpicklableException(Exception):
+    """Stands in for an exception whose class pickle cannot look up by name."""
 
 
 def create_log_queue() -> Queue:
@@ -21,12 +26,30 @@ def enqueue_logger(queue: Queue) -> None:
     """
     logger.remove()
 
-    def queue_sink(record):
-        queue.put(record)
+    def queue_sink(message):
+        _make_exception_picklable(message.record)
+        queue.put(message)
 
     logger.add(queue_sink)
     handler = list(logger._core.handlers.values())[0]
     handler._loguru_parallel_enqueued = True
+
+
+def _make_exception_picklable(record) -> None:
+    # Loguru drops an unpicklable exception value when pickling a record, but
+    # still pickles its class, which fails for classes created at runtime
+    # (botocore's ClientError subclasses): the whole record is then lost.
+    exception = record["exception"]
+    if exception is None:
+        return
+    try:
+        pickle.dumps(exception.type)
+    except Exception:
+        name = f"{exception.type.__module__}.{exception.type.__qualname__}"
+        record["exception"] = exception._replace(
+            type=UnpicklableException,
+            value=UnpicklableException(f"{name}: {exception.value}"),
+        )
 
 
 def logger_is_enqueued(logger) -> bool:
